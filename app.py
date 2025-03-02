@@ -33,6 +33,7 @@ def load_user(user_id):
 
 @app.route('/api/articles')
 @login_required
+# retrieving articles based on user preferences
 def get_articles():
     try:
         preferences = current_user.preferences.split(',')
