@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venture Capital News</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600&display=swap">
+    <style>
+        body {
+            font-family: 'Raleway', sans-serif;
+            background: linear-gradient(135deg, #FFFFFF, #F0F0F0);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        header {
+            width: 100%;
+            background-color: #002244;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        header .logo {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        nav a {
+            color: white;
+            background-color: #002244;
+            padding: 10px 20px;
+            margin-left: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        nav a:hover {
+            background-color: #00A86B;
+        }
+        #articles-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            width: 80%;
+        }
+        #articles {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            text-align: center;
+            margin: 0 20px;
+        }
+        .article img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .control-button {
+            background-color: #002244;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        .control-button:hover {
+            background-color: #00A86B;
+        }
+        .reaction-buttons {
+            margin-top: 10px;
+        }
+        .reaction-buttons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #FF007F;
+            margin: 0 10px;
+            transition: color 0.3s;
+        }
+        .reaction-buttons button:hover {
+            color: #FFB6C1;
+        }
+        .fa-thumbs-up, .fa-thumbs-down {
+            font-size: 1.2em;
+        }
+        .read-more {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #002244;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .read-more:hover {
+            background-color: #00A86B;
+        }
+        footer {
+            width: 100%;
+            background-color: #002244;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: relative;
+        }
+        footer .social-icons a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 1.2em;
+        }
+        footer .social-icons a:hover {
+            color: #00A86B;
+        }
+
+         /* Existing styles */
+    
+    /* Liked button style */
+    .reaction-buttons button.liked {
+        color: #00FF00; /* Green for like */
+        transform: scale(1.2);
+        box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.5);
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Disliked button style */
+    .reaction-buttons button.disliked {
+        color: #FF0000; /* Red for dislike */
+        transform: scale(1.2);
+        box-shadow: 0px 0px 10px rgba(255, 0, 0, 0.5);
+        transition: all 0.3s ease-in-out;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">VC News</div>
+    </header>
+    <nav>
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Register</a>
+        <a href="{{ url_for('account') }}">Account</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+    <div id="articles-container">
+        <button class="control-button" onclick="showPrevious()"><i class="fas fa-arrow-left"></i></button>
+        <div id="articles"></div>
+        <button class="control-button" onclick="showNext()"><i class="fas fa-arrow-right"></i></button>
+    </div>
+    <footer>
+        <div>Connect with us:</div>
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+    </footer>
+    <script>
+        let articles = [];
+        let currentIndex = 0;
+
+        fetch('/api/articles')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error from API:', data.error);
+            document.getElementById('articles').innerText = 'This is the error people';
+            return;
+        }
+
+        articles = data;
+        if (articles.length > 0) {
+            displayArticle(currentIndex);
+        } else {
+            document.getElementById('articles').innerText = 'No articles found.';
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching articles:', error);
+    });
+
+
+        function displayArticle(index) {
+            const articlesContainer = document.getElementById('articles');
+            articlesContainer.innerHTML = '';
+            const article = articles[index];
+
+            if (article) {
+                const articleElement = document.createElement('div');
+                articleElement.classList.add('article', 'active');
+                articleElement.innerHTML = `
+                    <h2>${article.title}</h2>
+                    ${article.urlToImage ? `<img src="${article.urlToImage}" alt="Article Image">` : ''}
+                    <p>${article.description}</p>
+                    <a class="read-more" href="${article.url}" target="_blank">Read More</a>
+                    <div class="reaction-buttons">
+                        <button onclick="likeArticle('${article.title}', this)"><i class="fas fa-thumbs-up"></i></button>
+                        <button onclick="dislikeArticle('${article.title}', this)"><i class="fas fa-thumbs-down"></i></button>
+                    </div>
+                `;
+                articlesContainer.appendChild(articleElement);
+            } else {
+                articlesContainer.innerText = 'No articles found.';
+            }
+        }
+
+        function showNext() {
+            if (currentIndex < articles.length - 1) {
+                currentIndex++;
+                displayArticle(currentIndex);
+            }
+        }
+
+        function showPrevious() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayArticle(currentIndex);
+            }
+        }
+
+        function likeArticle(title, button) {
+        fetch('/like_article', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: title })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  console.log('Liked:', title);
+                  button.classList.add('liked'); // Add liked class
+                  button.nextElementSibling.classList.remove('disliked'); // Remove dislike if present
+              }
+          }).catch(error => {
+              console.error('Error liking article:', error);
+          });
+    }
+
+    function dislikeArticle(title, button) {
+        fetch('/dislike_article', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: title })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  console.log('Disliked:', title);
+                  button.classList.add('disliked'); // Add disliked class
+                  button.previousElementSibling.classList.remove('liked'); // Remove like if present
+              }
+          }).catch(error => {
+              console.error('Error disliking article:', error);
+          });
+    }
+
+        window.onload = fetchArticles;
+    </script>
+</body>
+</html>
